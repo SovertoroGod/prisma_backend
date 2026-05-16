@@ -1,0 +1,64 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            Int       @id @default(autoincrement())
+  full_name     String
+  username      String    @unique
+  email         String    @unique
+  password_hash String
+  role          Role      @default(CASHIER)
+  branch_id     Int?
+  is_active     Boolean   @default(true)
+  last_login    DateTime?
+  created_at    DateTime  @default(now())
+  updated_at    DateTime  @updatedAt
+
+  // relations
+  branch        Branch?   @relation(fields: [branch_id], references: [id], onDelete: SetNull)
+}
+
+model Branch {
+  id           Int      @id @default(autoincrement())
+  branch_code  String   @unique
+  branch_name  String   @unique
+  address      String
+  phone_number String?
+  is_active    Boolean  @default(true)
+  created_at   DateTime @default(now())
+  updated_at   DateTime @updatedAt
+
+  // relations
+  users        User[]
+}
+
+model Category {
+  id          Int        @id @default(autoincrement())
+  name        String     @unique
+  parent_id   Int?
+  description String?
+  is_active   Boolean    @default(true)
+  created_at  DateTime   @default(now())
+  updated_at  DateTime   @updatedAt
+
+  // self relation (parent-child)
+  parent      Category?  @relation("CategoryToCategory", fields: [parent_id], references: [id])
+  children    Category[] @relation("CategoryToCategory")
+}
+
+enum Role {
+  ADMIN
+  CASHIER
+  MANAGER
+}
