@@ -8,25 +8,26 @@ const { isAdmin, authorize } = require("../middlewares/authorize");
 
 const router = express.Router();
 
-router.use(verifyToken, authorize("cashier"));
+// router.use();
 
 router.get(
   "/admin/users",
+  verifyToken, authorize("admin", "cashier", "manager"),
   validateError(userManagementValidators.getAllUsersValidation),
   userManagementControllers.getAllUsers,
 );
 router.get(
-  "/admin/users/:id",
+  "/admin/users/:id", verifyToken, authorize("admin", "cashier", "manager"),
   validateError(validateID),
   userManagementControllers.getUserById,
 );
 router.patch(
-  "/admin/users/:id",
+  "/admin/users/:id", verifyToken, authorize("admin", "cashier", "manager"),
   validateError(userManagementValidators.updateUserValidation),
   userManagementControllers.updateUser,
 );
 router.delete(
-  "/admin/users/:id",
+  "/admin/users/:id", verifyToken, authorize("admin", "cashier", "manager"),
   validateError(validateID),
   userManagementControllers.deleteUser,
 );

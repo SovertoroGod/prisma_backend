@@ -1,18 +1,33 @@
 const { validationResult, matchedData } = require("express-validator");
 
-const validateError = (validations) => {
+const validateError = (validators) => {
   return async (req, res, next) => {
-    await Promise.all(validations.map((validation) => validation.run(req)));
+    // run all validators
+    for (const validator of validators) {
+      await validator.run(req);
+    }
 
     const errors = validationResult(req);
 
     if (!errors.isEmpty()) {
-      const firstError = errors.array({ onlyFirstError: true })[0];
+      const formatted = errors.array().reduce((acc, err) => {
+        const field = err.path;
+
+        if (!acc[field]) {
+          acc[field] = {
+            location: err.location,
+            messages: [],
+          };
+        }
+
+        acc[field].messages.push(err.msg);
+
+        return acc;
+      }, {});
 
       return res.status(400).json({
         success: false,
-        message: firstError.msg,
-        field: firstError.path,
+        errors: formatted,
       });
     }
 
@@ -20,7 +35,7 @@ const validateError = (validations) => {
       locations: ["body", "query", "params"],
     });
 
-    next();
+    return next();
   };
 };
 

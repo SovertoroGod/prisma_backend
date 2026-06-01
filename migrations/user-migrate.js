@@ -12,19 +12,19 @@ const oldDb = mysql.createPool({
   database: "pos_bot", // change this
 });
 function mapRole(role) {
-  if (!role) return "CASHIER";
+  if (!role) return "cashier";
 
-  const normalized = role.toUpperCase();
+  const normalized = role.toLowerCase();
 
   switch (normalized) {
-    case "ADMIN":
-      return "ADMIN";
-    case "MANAGER":
-      return "MANAGER";
-    case "CASHIER":
-      return "CASHIER";
+    case "admin":
+      return "admin";
+    case "manager":
+      return "manager";
+    case "cashier":
+      return "cashier";
     default:
-      return "CASHIER";
+      return "cashier";
   }
 }
 

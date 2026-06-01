@@ -6,11 +6,19 @@ const helmet = require("helmet");
 const path = require("path");
 const fs = require("fs");
 const cors = require("cors");
+const timeout = require("connect-timeout");
 
 const { config } = require("dotenv");
 
 const app = express();
 app.use(cors());
+app.use(timeout(process.env.REQUEST_TIMEOUT || "15s"));
+app.use((req, res, next) => {
+  if (req.timedout) {
+    return;
+  }
+  next();
+});
 app.use(express.json());
 app.use(morgan("dev"));
 app.use(helmet());
@@ -31,6 +39,12 @@ app.get("/", (req, res) => {
 });
 
 app.use((err, req, res, next) => {
+  if (err && err.code === "ETIMEDOUT") {
+    return res.status(503).json({
+      error: "request timeout",
+      message: "Request timed out",
+    });
+  }
   console.error("stack", err.stack);
   res.status(500).json({
     error: "something went wrong on the server",

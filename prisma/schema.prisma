@@ -18,7 +18,7 @@ model User {
   username      String    @unique
   email         String    @unique
   password_hash String
-  role          Role      @default(CASHIER)
+  role          Role      @default(cashier)
   branch_id     Int?
   is_active     Boolean   @default(true)
   last_login    DateTime?
@@ -41,6 +41,7 @@ model Branch {
 
   // relations
   users        User[]
+  inventories  Inventory[]
 }
 
 model Category {
@@ -55,10 +56,43 @@ model Category {
   // self relation (parent-child)
   parent      Category?  @relation("CategoryToCategory", fields: [parent_id], references: [id])
   children    Category[] @relation("CategoryToCategory")
+  products    Product[]
+}
+
+
+model Product {
+  id          Int         @id @default(autoincrement())
+  name        String
+  sku         String      @unique
+  description String?
+  price       Decimal     @db.Decimal(10, 2)
+  category_id Int?
+  is_active   Boolean     @default(true)
+  created_at  DateTime    @default(now())
+  updated_at  DateTime    @updatedAt
+
+  // relations
+  category    Category?   @relation(fields: [category_id], references: [id])
+  inventories Inventory[]
+}
+
+model Inventory {
+  id         Int      @id @default(autoincrement())
+  branch_id  Int
+  product_id Int
+  quantity   Int      @default(0)
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  // relations
+  branch     Branch   @relation(fields: [branch_id], references: [id], onDelete: Cascade)
+  product    Product  @relation(fields: [product_id], references: [id], onDelete: Cascade)
+
+  @@unique([branch_id, product_id])
 }
 
 enum Role {
-  ADMIN
-  CASHIER
-  MANAGER
+  admin
+  cashier
+  manager
 }

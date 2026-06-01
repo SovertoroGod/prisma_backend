@@ -1,34 +1,18 @@
 const { check, query } = require("express-validator");
+const { optionalInt, optionalString, optionalEnum, optionalEmail } = require("./common/commonOptional.validator");
+
 
 const updateUserValidation = [
-  check("id")
-    .trim()
-    .notEmpty()
-    .withMessage("Id is required for update user")
-    .isInt({ min: 1 })
-    .withMessage("Id must be integer")
-    .toInt(),
-  check("full_name")
-    .optional({ values: "falsy" })
-    .trim()
-    .isString()
-    .withMessage("Full name must be string format"),
-  check("username")
-    .optional({ values: "falsy" })
-    .trim()
-    .isString()
-    .withMessage("Username must be string format"),
-  check("email")
-    .optional({ values: "falsy" })
-    .trim()
-    .isEmail()
-    .withMessage("Email must be email format."),
+  optionalInt("id", "ID"),
+  optionalString("full_name", "Full Name"),
+  optionalString("username", "User Name"),
+  optionalEmail("email", "Email"),
   check("role")
     .optional({ values: "falsy" })
     .isString()
     .withMessage("Role must be string format")
-    .isIn(["ADMIN", "MANAGER", "CASHIER"])
-    .withMessage("Invalid Role. Role must be ADMIN or MANAGER or CASHIER"),
+    .isIn(["admin", "manager", "cashier"])
+    .withMessage("Invalid Role. Role must be admin or manager or cashier"),
   check("branch_id")
     .optional({ values: "falsy" })
     .isInt({ min: 1 })
