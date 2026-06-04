@@ -18,7 +18,7 @@ const optionalNumber = (field, label = field, min = 0) =>
 
 const optionalISODate = (field, label = field) =>
     check(field)
-        .optional()
+        .optional({ values: "falsy" })
         .trim()
         .isISO8601()
         .withMessage(`${label} must be YYYY-MM-DD format`);
@@ -29,7 +29,7 @@ const optionalEndDate = (
     label = "End date",
 ) =>
     check(field)
-        .optional()
+        .optional({ values: "falsy" })
         .trim()
         .isISO8601()
         .withMessage(`${label} must be YYYY-MM-DD format`)
@@ -52,7 +52,7 @@ const optionalString = (field, label = field) =>
 
 const optionalBoolean = (field, label = field) =>
     check(field)
-        .optional({ values: "null" })
+        .optional({ values: "falsy" })
         .toBoolean()
         .isBoolean()
         .withMessage(`${label} must be true or false`);

@@ -27,6 +27,7 @@ model User {
 
   // relations
   branch        Branch?   @relation(fields: [branch_id], references: [id], onDelete: SetNull)
+  unit_logs     ProductUnitLog[] @relation("CreatedBy")
 }
 
 model Branch {
@@ -40,8 +41,10 @@ model Branch {
   updated_at   DateTime @updatedAt
 
   // relations
-  users        User[]
-  inventories  Inventory[]
+  users         User[]
+  product_units ProductUnit[]
+  from_logs     ProductUnitLog[] @relation("FromBranch")
+  to_logs       ProductUnitLog[] @relation("ToBranch")
 }
 
 model Category {
@@ -54,41 +57,88 @@ model Category {
   updated_at  DateTime   @updatedAt
 
   // self relation (parent-child)
-  parent      Category?  @relation("CategoryToCategory", fields: [parent_id], references: [id])
-  children    Category[] @relation("CategoryToCategory")
-  products    Product[]
+  parent       Category?     @relation("CategoryToCategory", fields: [parent_id], references: [id])
+  children     Category[]    @relation("CategoryToCategory")
+  product_lists ProductList[]
 }
 
 
-model Product {
-  id          Int         @id @default(autoincrement())
+model ProductList {
+  id          Int           @id @default(autoincrement())
   name        String
-  sku         String      @unique
   description String?
-  price       Decimal     @db.Decimal(10, 2)
   category_id Int?
-  is_active   Boolean     @default(true)
-  created_at  DateTime    @default(now())
-  updated_at  DateTime    @updatedAt
+  is_active   Boolean       @default(true)
+  created_at  DateTime      @default(now())
+  updated_at  DateTime      @updatedAt
 
   // relations
-  category    Category?   @relation(fields: [category_id], references: [id])
-  inventories Inventory[]
+  category    Category?     @relation(fields: [category_id], references: [id])
+  items       ProductItem[]
 }
 
-model Inventory {
-  id         Int      @id @default(autoincrement())
-  branch_id  Int
-  product_id Int
-  quantity   Int      @default(0)
-  created_at DateTime @default(now())
-  updated_at DateTime @updatedAt
+model ProductItem {
+  id              Int           @id @default(autoincrement())
+  product_list_id Int
+  sku             String        @unique
+  name            String
+  price           Decimal       @db.Decimal(10, 2)
+  is_active       Boolean       @default(true)
+  created_at      DateTime      @default(now())
+  updated_at      DateTime      @updatedAt
 
   // relations
-  branch     Branch   @relation(fields: [branch_id], references: [id], onDelete: Cascade)
-  product    Product  @relation(fields: [product_id], references: [id], onDelete: Cascade)
+  product_list    ProductList   @relation(fields: [product_list_id], references: [id], onDelete: Cascade)
+  units           ProductUnit[]
+}
 
-  @@unique([branch_id, product_id])
+model ProductUnit {
+  id              Int           @id @default(autoincrement())
+  product_item_id Int
+  branch_id       Int
+  quantity        Int           @default(0)
+  is_active       Boolean       @default(true)
+  created_at      DateTime      @default(now())
+  updated_at      DateTime      @updatedAt
+
+  // relations
+  product_item    ProductItem   @relation(fields: [product_item_id], references: [id], onDelete: Cascade)
+  branch          Branch        @relation(fields: [branch_id], references: [id], onDelete: Cascade)
+
+  @@unique([product_item_id, branch_id])
+
+  // relations
+  logs            ProductUnitLog[]
+}
+
+enum ProductUnitLogType {
+  initial
+  transfer_out
+  transfer_in
+  sold
+  issue
+  adjustment
+  return
+}
+
+model ProductUnitLog {
+  id              Int                 @id @default(autoincrement())
+  product_unit_id Int
+  from_branch_id  Int?
+  to_branch_id    Int?
+  previous_qty    Int                 @default(0)
+  current_qty     Int                 @default(0)
+  quantity        Int
+  type            ProductUnitLogType
+  reference_id    String?
+  notes           String?
+  created_by      Int?
+  created_at      DateTime            @default(now())
+
+  product_unit    ProductUnit         @relation(fields: [product_unit_id], references: [id], onDelete: Cascade)
+  from_branch     Branch?             @relation("FromBranch", fields: [from_branch_id], references: [id], onDelete: SetNull)
+  to_branch       Branch?             @relation("ToBranch", fields: [to_branch_id], references: [id], onDelete: SetNull)
+  creator         User?               @relation("CreatedBy", fields: [created_by], references: [id], onDelete: SetNull)
 }
 
 enum Role {

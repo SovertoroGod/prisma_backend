@@ -12,22 +12,29 @@ const router = express.Router();
 
 router.get(
   "/admin/users",
-  verifyToken, authorize("admin", "cashier", "manager"),
+  verifyToken,
+  authorize("admin", "cashier", "manager"),
   validateError(userManagementValidators.getAllUsersValidation),
   userManagementControllers.getAllUsers,
 );
 router.get(
-  "/admin/users/:id", verifyToken, authorize("admin", "cashier", "manager"),
+  "/admin/users/:id",
+  verifyToken,
+  authorize("admin", "cashier", "manager"),
   validateError(validateID),
   userManagementControllers.getUserById,
 );
 router.patch(
-  "/admin/users/:id", verifyToken, authorize("admin", "cashier", "manager"),
+  "/admin/users/:id",
+  verifyToken,
+  authorize("admin", "manager"),
   validateError(userManagementValidators.updateUserValidation),
   userManagementControllers.updateUser,
 );
 router.delete(
-  "/admin/users/:id", verifyToken, authorize("admin", "cashier", "manager"),
+  "/admin/users/:id",
+  verifyToken,
+  isAdmin,
   validateError(validateID),
   userManagementControllers.deleteUser,
 );
