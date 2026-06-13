@@ -63,7 +63,7 @@ const optionalEnum = (
     label = field
 ) =>
     check(field)
-        .optional()
+        .optional({ values: "falsy" })
         .trim()
         .isString()
         .withMessage(`${label} must be a string`)

@@ -28,6 +28,8 @@ model User {
   // relations
   branch        Branch?   @relation(fields: [branch_id], references: [id], onDelete: SetNull)
   unit_logs     ProductUnitLog[] @relation("CreatedBy")
+  stock_transfers StockTransfer[]
+  notifications Notification[]
 }
 
 model Branch {
@@ -41,10 +43,12 @@ model Branch {
   updated_at   DateTime @updatedAt
 
   // relations
-  users         User[]
-  product_units ProductUnit[]
-  from_logs     ProductUnitLog[] @relation("FromBranch")
-  to_logs       ProductUnitLog[] @relation("ToBranch")
+  users              User[]
+  product_units      ProductUnit[]
+  from_logs          ProductUnitLog[] @relation("FromBranch")
+  to_logs            ProductUnitLog[] @relation("ToBranch")
+  stock_transfers_from StockTransfer[] @relation("StockTransferFromBranch")
+  stock_transfers_to   StockTransfer[] @relation("StockTransferToBranch")
 }
 
 model Category {
@@ -90,6 +94,7 @@ model ProductItem {
   // relations
   product_list    ProductList   @relation(fields: [product_list_id], references: [id], onDelete: Cascade)
   units           ProductUnit[]
+  stock_transfers StockTransfer[]
 }
 
 model ProductUnit {
@@ -145,4 +150,48 @@ enum Role {
   admin
   cashier
   manager
+}
+
+enum StockTransferStatus {
+  pending
+  completed
+  cancelled
+}
+
+enum NotificationType {
+  transfer_request
+  transfer_received
+  transfer_cancelled
+  general
+}
+
+model StockTransfer {
+  id              Int                @id @default(autoincrement())
+  from_branch_id  Int
+  to_branch_id    Int
+  product_item_id Int
+  quantity        Int
+  status          StockTransferStatus @default(pending)
+  notes           String?
+  created_by      Int
+  created_at      DateTime           @default(now())
+  updated_at      DateTime           @updatedAt
+
+  from_branch     Branch             @relation("StockTransferFromBranch", fields: [from_branch_id], references: [id], onDelete: Cascade)
+  to_branch       Branch             @relation("StockTransferToBranch", fields: [to_branch_id], references: [id], onDelete: Cascade)
+  product_item    ProductItem        @relation(fields: [product_item_id], references: [id], onDelete: Cascade)
+  creator         User               @relation(fields: [created_by], references: [id], onDelete: Cascade)
+}
+
+model Notification {
+  id          Int              @id @default(autoincrement())
+  user_id     Int
+  type        NotificationType
+  title       String
+  message     String
+  reference_id String?
+  is_read     Boolean          @default(false)
+  created_at  DateTime         @default(now())
+
+  user        User             @relation(fields: [user_id], references: [id], onDelete: Cascade)
 }
