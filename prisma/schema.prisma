@@ -49,6 +49,7 @@ model Branch {
   to_logs            ProductUnitLog[] @relation("ToBranch")
   stock_transfers_from StockTransfer[] @relation("StockTransferFromBranch")
   stock_transfers_to   StockTransfer[] @relation("StockTransferToBranch")
+  notifications        Notification[]
 }
 
 model Category {
@@ -192,6 +193,8 @@ model Notification {
   reference_id String?
   is_read     Boolean          @default(false)
   created_at  DateTime         @default(now())
+  branch_id   Int?
 
   user        User             @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  branch      Branch?          @relation(fields: [branch_id], references: [id], onDelete: SetNull)
 }

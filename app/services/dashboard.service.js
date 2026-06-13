@@ -95,6 +95,87 @@ class DashboardService {
       recentLogs,
     };
   }
+
+  async getManagerDashboard(branchId) {
+    const parsedBranchId = parseInt(branchId);
+
+    const [branchStocks, lowStockCount, outOfStockCount, recentLogs, pendingTransfers, branchUsers, todayLogCount] = await Promise.all([
+      prisma.productUnit.findMany({
+        where: { branch_id: parsedBranchId },
+        include: {
+          product_item: { include: { product_list: true } },
+        },
+        orderBy: { product_item: { name: "asc" } },
+      }),
+      prisma.productUnit.count({ where: { branch_id: parsedBranchId, quantity: { lte: 5 }, is_active: true } }),
+      prisma.productUnit.count({ where: { branch_id: parsedBranchId, quantity: 0, is_active: true } }),
+      prisma.productUnitLog.findMany({
+        where: {
+          OR: [
+            { from_branch_id: parsedBranchId },
+            { to_branch_id: parsedBranchId },
+          ],
+        },
+        take: 10,
+        orderBy: { created_at: "desc" },
+        include: {
+          product_unit: { include: { product_item: { include: { product_list: true } } } },
+          from_branch: { select: { id: true, branch_name: true } },
+          to_branch: { select: { id: true, branch_name: true } },
+          creator: { select: { id: true, full_name: true, username: true } },
+        },
+      }),
+      prisma.stockTransfer.findMany({
+        where: {
+          status: "pending",
+          OR: [
+            { from_branch_id: parsedBranchId },
+            { to_branch_id: parsedBranchId },
+          ],
+        },
+        orderBy: { created_at: "desc" },
+        include: {
+          from_branch: { select: { id: true, branch_name: true } },
+          to_branch: { select: { id: true, branch_name: true } },
+          product_item: true,
+          creator: { select: { id: true, full_name: true, username: true } },
+        },
+      }),
+      prisma.user.findMany({
+        where: { branch_id: parsedBranchId, is_active: true },
+        select: { id: true, full_name: true, username: true, role: true, is_active: true },
+        orderBy: { full_name: "asc" },
+      }),
+      prisma.productUnitLog.count({
+        where: {
+          OR: [
+            { from_branch_id: parsedBranchId },
+            { to_branch_id: parsedBranchId },
+          ],
+          created_at: {
+            gte: new Date(new Date().setHours(0, 0, 0, 0)),
+          },
+        },
+      }),
+    ]);
+
+    const totalQuantity = branchStocks.reduce((sum, s) => sum + s.quantity, 0);
+
+    return {
+      stocks: {
+        items: branchStocks,
+        lowStockCount,
+        outOfStockCount,
+        totalQuantity,
+      },
+      activity: {
+        recentLogs,
+        pendingTransfers,
+        todayLogCount,
+      },
+      users: branchUsers,
+    };
+  }
 }
 
 module.exports = new DashboardService();

@@ -5,6 +5,7 @@ const getNotifications = [
   optionalInt("limit", "Limit"),
   optionalBoolean("is_read", "Is Read"),
   optionalEnum("type", ["transfer_request", "transfer_received", "transfer_cancelled", "general"], "Type"),
+  optionalInt("branch_id", "Branch ID"),
 ];
 
 module.exports = { getNotifications };

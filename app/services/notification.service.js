@@ -2,7 +2,7 @@ const { PrismaClient } = require("@prisma/client");
 const prisma = new PrismaClient();
 
 class NotificationService {
-  async createForUsers(userIds, payload) {
+  async createForUsers(userIds, payload, branchId = null) {
     const { type, title, message, reference_id } = payload;
     const data = userIds.map((userId) => ({
       user_id: parseInt(userId),
@@ -10,15 +10,17 @@ class NotificationService {
       title,
       message,
       reference_id: reference_id || null,
+      branch_id: branchId ? parseInt(branchId) : null,
     }));
     await prisma.notification.createMany({ data });
   }
 
   async getMyNotifications(userId, filters) {
-    const { is_read, type, page = 1, limit = 10 } = filters;
+    const { is_read, type, branch_id, page = 1, limit = 10 } = filters;
     const andConditions = [{ user_id: parseInt(userId) }];
     if (is_read !== undefined && is_read !== "") andConditions.push({ is_read: is_read === "true" });
     if (type) andConditions.push({ type });
+    if (branch_id) andConditions.push({ branch_id: parseInt(branch_id) });
     const where = { AND: andConditions };
     const skip = (parseInt(page) - 1) * parseInt(limit);
     const [data, total] = await Promise.all([

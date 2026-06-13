@@ -108,6 +108,7 @@ class StockTransferService {
         message: `Stock transfer of ${parsedQty} units from ${result.stockTransfer.from_branch.branch_name} to ${result.stockTransfer.to_branch.branch_name}`,
         reference_id: String(result.stockTransfer.id),
       },
+      to_branch_id,
     );
 
     return result.stockTransfer;
@@ -214,6 +215,7 @@ class StockTransferService {
         message: `Stock transfer #${transfer.id} of ${transfer.quantity} units from ${transfer.from_branch.branch_name} to ${transfer.to_branch.branch_name} has been cancelled`,
         reference_id: String(transfer.id),
       },
+      transfer.to_branch_id,
     );
 
     return result.updatedTransfer;
@@ -283,6 +285,7 @@ class StockTransferService {
         message: `Stock transfer #${transfer.id} of ${transfer.quantity} units from ${transfer.from_branch.branch_name} to ${transfer.to_branch.branch_name} has been received`,
         reference_id: String(transfer.id),
       },
+      transfer.from_branch_id,
     );
 
     return result.updatedTransfer;

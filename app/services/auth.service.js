@@ -61,10 +61,14 @@ class AuthService {
     }
 
     const token = jwt.sign(
-      { id: user.id, role: user.role },
+      { id: user.id, role: user.role, branch_id: user.branch_id },
       process.env.JWT_SECRET,
       { expiresIn: "30d" },
     );
+
+    const branch = user.branch_id
+      ? await prisma.branch.findUnique({ where: { id: user.branch_id }, select: { branch_name: true } })
+      : null;
 
     // update last login
     await prisma.user.update({
@@ -80,6 +84,8 @@ class AuthService {
         username: user.username,
         email: user.email,
         role: user.role,
+        branch_id: user.branch_id,
+        branch_name: branch?.branch_name || null,
       },
     };
   }

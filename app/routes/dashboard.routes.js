@@ -1,6 +1,6 @@
 const express = require("express");
 const verifyToken = require("../middlewares/verifyToken");
-const { isAdmin } = require("../middlewares/authorize");
+const { isAdmin, isManager } = require("../middlewares/authorize");
 const dashboardControllers = require("../controllers/dashboard.controller");
 const router = express.Router();
 
@@ -9,6 +9,12 @@ router.get(
   verifyToken,
   isAdmin,
   dashboardControllers.getStats,
+);
+router.get(
+  "/manager/dashboard",
+  verifyToken,
+  isManager,
+  dashboardControllers.getManagerDashboard,
 );
 
 module.exports = router;
