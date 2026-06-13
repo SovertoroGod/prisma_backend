@@ -30,6 +30,7 @@ model User {
   unit_logs     ProductUnitLog[] @relation("CreatedBy")
   stock_transfers StockTransfer[]
   notifications Notification[]
+  issue_items     IssueItem[] @relation("IssueCreatedBy")
 }
 
 model Branch {
@@ -47,9 +48,10 @@ model Branch {
   product_units      ProductUnit[]
   from_logs          ProductUnitLog[] @relation("FromBranch")
   to_logs            ProductUnitLog[] @relation("ToBranch")
+  issue_items        IssueItem[]      @relation("IssueFromBranch")
   stock_transfers_from StockTransfer[] @relation("StockTransferFromBranch")
   stock_transfers_to   StockTransfer[] @relation("StockTransferToBranch")
-  notifications        Notification[]
+  notifications Notification[]
 }
 
 model Category {
@@ -96,6 +98,7 @@ model ProductItem {
   product_list    ProductList   @relation(fields: [product_list_id], references: [id], onDelete: Cascade)
   units           ProductUnit[]
   stock_transfers StockTransfer[]
+  issue_items     IssueItem[]
 }
 
 model ProductUnit {
@@ -164,6 +167,7 @@ enum NotificationType {
   transfer_received
   transfer_cancelled
   general
+  stock_issue
 }
 
 model StockTransfer {
@@ -182,6 +186,20 @@ model StockTransfer {
   to_branch       Branch             @relation("StockTransferToBranch", fields: [to_branch_id], references: [id], onDelete: Cascade)
   product_item    ProductItem        @relation(fields: [product_item_id], references: [id], onDelete: Cascade)
   creator         User               @relation(fields: [created_by], references: [id], onDelete: Cascade)
+}
+
+model IssueItem {
+  id              Int           @id @default(autoincrement())
+  product_item_id Int
+  from_branch_id  Int
+  quantity        Int
+  notes           String?
+  created_by      Int
+  created_at      DateTime      @default(now())
+
+  product_item    ProductItem   @relation(fields: [product_item_id], references: [id])
+  from_branch     Branch        @relation("IssueFromBranch", fields: [from_branch_id], references: [id])
+  creator         User          @relation("IssueCreatedBy", fields: [created_by], references: [id])
 }
 
 model Notification {

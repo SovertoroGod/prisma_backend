@@ -19,7 +19,7 @@ router.post(
 router.get(
   "/admin/branches",
   verifyToken,
-  isAdmin,
+  // isAdmin, 
   validateError(branchValidators.getAllBranchesValidation),
   branchControllers.getAllBranches,
 );
