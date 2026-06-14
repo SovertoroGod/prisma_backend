@@ -1,6 +1,6 @@
 const express = require("express");
 const verifyToken = require("../middlewares/verifyToken");
-const { isAdmin } = require("../middlewares/authorize");
+const { isAdmin, isManager } = require("../middlewares/authorize");
 const validateError = require("../middlewares/validationErrorHandler");
 const validateID = require("../validations/id.validation");
 const productUnitValidators = require("../validations/productUnit.validation");
@@ -41,6 +41,13 @@ router.delete(
   isAdmin,
   validateError(validateID),
   productUnitControllers.deleteUnit,
+);
+router.get(
+  "/manager/product-units",
+  verifyToken,
+  isManager,
+  validateError(productUnitValidators.getAllProductUnits),
+  productUnitControllers.getAllForManager,
 );
 
 module.exports = router;

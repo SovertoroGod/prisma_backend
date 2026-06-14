@@ -46,7 +46,7 @@ class ProductUnitService {
         skip,
         take: parseInt(limit),
         orderBy: { created_at: "desc" },
-        include: { product_item: { include: { product_list: true } }, branch: true },
+        include: { product_item: { include: { product_list: { include: { category: true } } } }, branch: true },
       }),
       prisma.productUnit.count({ where }),
     ]);
