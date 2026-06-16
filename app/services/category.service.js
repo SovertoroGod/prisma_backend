@@ -1,5 +1,4 @@
 const { PrismaClient } = require("@prisma/client");
-const { connect } = require("../routes/category.routes");
 const prisma = new PrismaClient();
 
 class CategoryService {

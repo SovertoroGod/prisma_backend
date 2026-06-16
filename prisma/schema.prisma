@@ -31,6 +31,7 @@ model User {
   stock_transfers StockTransfer[]
   notifications Notification[]
   issue_items     IssueItem[] @relation("IssueCreatedBy")
+  vouchers        Voucher[]   @relation("CashierVouchers")
 }
 
 model Branch {
@@ -51,7 +52,8 @@ model Branch {
   issue_items        IssueItem[]      @relation("IssueFromBranch")
   stock_transfers_from StockTransfer[] @relation("StockTransferFromBranch")
   stock_transfers_to   StockTransfer[] @relation("StockTransferToBranch")
-  notifications Notification[]
+  notifications     Notification[]
+  vouchers          Voucher[]
 }
 
 model Category {
@@ -99,6 +101,7 @@ model ProductItem {
   units           ProductUnit[]
   stock_transfers StockTransfer[]
   issue_items     IssueItem[]
+  voucher_items   VoucherItem[]
 }
 
 model ProductUnit {
@@ -200,6 +203,108 @@ model IssueItem {
   product_item    ProductItem   @relation(fields: [product_item_id], references: [id])
   from_branch     Branch        @relation("IssueFromBranch", fields: [from_branch_id], references: [id])
   creator         User          @relation("IssueCreatedBy", fields: [created_by], references: [id])
+}
+
+model Customer {
+  id         Int       @id @default(autoincrement())
+  name       String
+  phone      String
+  created_at DateTime  @default(now())
+  updated_at DateTime  @updatedAt
+
+  vouchers   Voucher[]
+  debts      Debt[]
+
+  @@unique([name, phone])
+}
+
+model BankAccount {
+  id             Int       @id @default(autoincrement())
+  account_name   String
+  account_number String    @unique
+  bank_name      String
+  is_active      Boolean   @default(true)
+  created_at     DateTime  @default(now())
+  updated_at     DateTime  @updatedAt
+
+  vouchers       Voucher[]
+  repayments     Repayment[]
+}
+
+model Voucher {
+  id                   Int           @id @default(autoincrement())
+  code                 String        @unique
+  customer_id          Int?
+  cashier_id           Int
+  branch_id            Int
+  subtotal             Decimal       @db.Decimal(10, 2)
+  total_item_discount  Decimal       @db.Decimal(10, 2) @default(0)
+  voucher_discount     Decimal       @db.Decimal(10, 2) @default(0)
+  voucher_discount_type String?
+  grand_total          Decimal       @db.Decimal(10, 2)
+  amount_paid          Decimal       @db.Decimal(10, 2) @default(0)
+  change_amount        Decimal       @db.Decimal(10, 2) @default(0)
+  purchase_type        String        @default("cash")
+  bank_account_id      Int?
+  created_at           DateTime      @default(now())
+
+  customer     Customer?     @relation(fields: [customer_id], references: [id], onDelete: SetNull)
+  cashier      User          @relation("CashierVouchers", fields: [cashier_id], references: [id])
+  branch       Branch        @relation(fields: [branch_id], references: [id])
+  bank_account BankAccount?  @relation(fields: [bank_account_id], references: [id], onDelete: SetNull)
+  items        VoucherItem[]
+  debt         Debt?
+}
+
+model VoucherItem {
+  id              Int       @id @default(autoincrement())
+  voucher_id      Int
+  product_item_id Int
+  product_name    String
+  sku             String
+  price           Decimal   @db.Decimal(10, 2)
+  quantity        Int
+  discount_type   String?
+  discount_value  Decimal   @db.Decimal(10, 2) @default(0)
+  line_total      Decimal   @db.Decimal(10, 2)
+
+  voucher      Voucher      @relation(fields: [voucher_id], references: [id], onDelete: Cascade)
+  product_item ProductItem  @relation(fields: [product_item_id], references: [id])
+}
+
+enum DebtStatus {
+  pending
+  paid
+  written_off
+}
+
+model Debt {
+  id               Int        @id @default(autoincrement())
+  voucher_id       Int        @unique
+  customer_id      Int
+  total_amount     Decimal    @db.Decimal(10, 2)
+  paid_amount      Decimal    @db.Decimal(10, 2)
+  remaining_amount Decimal    @db.Decimal(10, 2)
+  status           DebtStatus @default(pending)
+  created_at       DateTime   @default(now())
+  updated_at       DateTime   @updatedAt
+
+  voucher    Voucher      @relation(fields: [voucher_id], references: [id])
+  customer   Customer     @relation(fields: [customer_id], references: [id])
+  repayments Repayment[]
+}
+
+model Repayment {
+  id              Int          @id @default(autoincrement())
+  debt_id         Int
+  amount          Decimal      @db.Decimal(10, 2)
+  payment_type    String       @default("cash")
+  bank_account_id Int?
+  notes           String?
+  created_at      DateTime     @default(now())
+
+  debt         Debt         @relation(fields: [debt_id], references: [id], onDelete: Cascade)
+  bank_account BankAccount? @relation(fields: [bank_account_id], references: [id], onDelete: SetNull)
 }
 
 model Notification {
