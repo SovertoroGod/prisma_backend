@@ -21,7 +21,7 @@ router.get(
 router.post(
   "/branches/debts/:id/repay",
   verifyToken,
-  validateError(debtValidators.repayDebt),
+  validateError([...debtValidators.repayDebt, ...validateID]),
   debtControllers.repay,
 );
 

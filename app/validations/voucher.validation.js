@@ -1,5 +1,5 @@
 const { PrismaClient } = require("@prisma/client");
-const { check } = require("express-validator");
+const { check, query } = require("express-validator");
 const { requiredString, requiredInt, requiredEnum, requiredNumber } = require("./common/commonRequire");
 const { optionalInt, optionalString, optionalNumber } = require("./common/commonOptional.validator");
 const prisma = new PrismaClient();
@@ -57,10 +57,10 @@ const createVoucher = [
 ];
 
 const getVouchers = [
-  optionalInt("page", "Page"),
-  optionalInt("limit", "Limit"),
-  optionalString("startDate", "Start Date"),
-  optionalString("endDate", "End Date"),
+  query("page").optional({ values: "falsy" }).trim().isInt({ min: 1 }).withMessage("Page must be positive integer").toInt(),
+  query("limit").optional({ values: "falsy" }).trim().isInt({ min: 1 }).withMessage("Limit must be positive integer").toInt(),
+  query("startDate").optional({ values: "falsy" }).trim().isString().withMessage("Start Date must be a string"),
+  query("endDate").optional({ values: "falsy" }).trim().isString().withMessage("End Date must be a string"),
 ];
 
 module.exports = { createVoucher, getVouchers };

@@ -157,7 +157,7 @@ class VoucherService {
     if (startDate || endDate) {
       andConditions.push({
         created_at: {
-          gte: startDate ? new Date(startDate) : undefined,
+          gte: startDate ? new Date(startDate + "T00:00:00") : undefined,
           lte: endDate ? new Date(endDate + "T23:59:59") : undefined,
         },
       });
@@ -180,7 +180,7 @@ class VoucherService {
   async getById(id, branchId) {
     const voucher = await prisma.voucher.findFirst({
       where: { id: parseInt(id), branch_id: branchId },
-      include: { items: true, customer: true, bank_account: true },
+      include: { items: true, customer: true, bank_account: true, cashier: { select: { full_name: true } }, debt: true },
     });
     if (!voucher) throw new Error("Voucher not found");
     return { message: `Voucher ${voucher.code} found`, data: voucher };
