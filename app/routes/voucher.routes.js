@@ -1,5 +1,6 @@
 const express = require("express");
 const verifyToken = require("../middlewares/verifyToken");
+const { isManager } = require("../middlewares/authorize");
 const validateError = require("../middlewares/validationErrorHandler");
 const validateID = require("../validations/id.validation");
 const voucherValidators = require("../validations/voucher.validation");
@@ -23,6 +24,28 @@ router.get(
   verifyToken,
   validateError(validateID),
   voucherControllers.getById,
+);
+
+router.get(
+  "/manager/vouchers",
+  verifyToken,
+  isManager,
+  validateError(voucherValidators.getVouchers),
+  voucherControllers.getAllManager,
+);
+router.get(
+  "/manager/vouchers/:id",
+  verifyToken,
+  isManager,
+  validateError(validateID),
+  voucherControllers.getByIdManager,
+);
+router.post(
+  "/manager/vouchers/:id/cancel",
+  verifyToken,
+  isManager,
+  validateError([...validateID, ...voucherValidators.cancelVoucher]),
+  voucherControllers.cancel,
 );
 
 module.exports = router;

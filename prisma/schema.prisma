@@ -31,7 +31,8 @@ model User {
   stock_transfers StockTransfer[]
   notifications Notification[]
   issue_items     IssueItem[] @relation("IssueCreatedBy")
-  vouchers        Voucher[]   @relation("CashierVouchers")
+  vouchers         Voucher[]   @relation("CashierVouchers")
+  cancelled_vouchers Voucher[]  @relation("CancelledByUser")
 }
 
 model Branch {
@@ -247,13 +248,18 @@ model Voucher {
   purchase_type        String        @default("cash")
   bank_account_id      Int?
   created_at           DateTime      @default(now())
+  status               String        @default("active")
+  cancelled_at         DateTime?
+  cancel_reason        String?
+  cancelled_by         Int?
 
-  customer     Customer?     @relation(fields: [customer_id], references: [id], onDelete: SetNull)
-  cashier      User          @relation("CashierVouchers", fields: [cashier_id], references: [id])
-  branch       Branch        @relation(fields: [branch_id], references: [id])
-  bank_account BankAccount?  @relation(fields: [bank_account_id], references: [id], onDelete: SetNull)
-  items        VoucherItem[]
-  debt         Debt?
+  customer      Customer?     @relation(fields: [customer_id], references: [id], onDelete: SetNull)
+  cashier       User          @relation("CashierVouchers", fields: [cashier_id], references: [id])
+  branch        Branch        @relation(fields: [branch_id], references: [id])
+  bank_account  BankAccount?  @relation(fields: [bank_account_id], references: [id], onDelete: SetNull)
+  canceller     User?         @relation("CancelledByUser", fields: [cancelled_by], references: [id])
+  items         VoucherItem[]
+  debt          Debt?
 }
 
 model VoucherItem {

@@ -20,7 +20,7 @@ class ProductListService {
     const andConditions = [];
     if (name) andConditions.push({ name: { contains: name } });
     if (category_id) andConditions.push({ category_id: parseInt(category_id) });
-    if (is_active !== undefined && is_active !== "") andConditions.push({ is_active: is_active === "true" });
+    if (is_active !== undefined && is_active !== "") andConditions.push({ is_active });
     if (search) andConditions.push({ OR: [{ name: { contains: search } }] });
     if (startDate || endDate) andConditions.push({ created_at: { gte: startDate ? new Date(startDate) : undefined, lte: endDate ? new Date(endDate + "T23:59:59") : undefined } });
     const where = andConditions.length > 0 ? { AND: andConditions } : {};

@@ -18,7 +18,7 @@ class ProductItemService {
     if (name) andConditions.push({ name: { contains: name } });
     if (sku) andConditions.push({ sku: { contains: sku } });
     if (product_list_id) andConditions.push({ product_list_id: parseInt(product_list_id) });
-    if (is_active !== undefined && is_active !== "") andConditions.push({ is_active: is_active === "true" });
+    if (is_active !== undefined && is_active !== "") andConditions.push({ is_active });
     if (search) andConditions.push({ OR: [{ name: { contains: search } }, { sku: { contains: search } }] });
     if (startDate || endDate) andConditions.push({ created_at: { gte: startDate ? new Date(startDate) : undefined, lte: endDate ? new Date(endDate + "T23:59:59") : undefined } });
     const where = andConditions.length > 0 ? { AND: andConditions } : {};

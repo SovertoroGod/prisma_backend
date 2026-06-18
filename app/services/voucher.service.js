@@ -170,7 +170,7 @@ class VoucherService {
         skip,
         take: parseInt(limit),
         orderBy: { created_at: "desc" },
-        include: { items: true, customer: true, bank_account: true },
+        include: { items: true, customer: true, bank_account: true, cashier: { select: { full_name: true } } },
       }),
       prisma.voucher.count({ where }),
     ]);
@@ -180,10 +180,73 @@ class VoucherService {
   async getById(id, branchId) {
     const voucher = await prisma.voucher.findFirst({
       where: { id: parseInt(id), branch_id: branchId },
-      include: { items: true, customer: true, bank_account: true, cashier: { select: { full_name: true } }, debt: true },
+      include: { items: true, customer: true, bank_account: true, cashier: { select: { full_name: true } }, debt: true, canceller: { select: { full_name: true } } },
     });
     if (!voucher) throw new Error("Voucher not found");
     return { message: `Voucher ${voucher.code} found`, data: voucher };
+  }
+
+  async cancel(id, branchId, userId, reason) {
+    const voucher = await prisma.voucher.findFirst({
+      where: { id: parseInt(id), branch_id: branchId },
+      include: { items: true, debt: true },
+    });
+    if (!voucher) throw new Error("Voucher not found");
+    if (voucher.status === "cancelled") throw new Error("Voucher is already cancelled");
+
+    await prisma.$transaction(async (tx) => {
+      await tx.voucher.update({
+        where: { id: parseInt(id) },
+        data: {
+          status: "cancelled",
+          cancelled_at: new Date(),
+          cancel_reason: reason || null,
+          cancelled_by: userId,
+        },
+      });
+
+      for (const item of voucher.items) {
+        const productUnit = await tx.productUnit.findUnique({
+          where: {
+            product_item_id_branch_id: {
+              product_item_id: item.product_item_id,
+              branch_id: branchId,
+            },
+          },
+        });
+        if (productUnit) {
+          await tx.productUnit.update({
+            where: { id: productUnit.id },
+            data: { quantity: productUnit.quantity + item.quantity },
+          });
+          await tx.productUnitLog.create({
+            data: {
+              product_unit_id: productUnit.id,
+              previous_qty: productUnit.quantity,
+              current_qty: productUnit.quantity + item.quantity,
+              quantity: item.quantity,
+              type: "adjustment",
+              reference_id: voucher.code,
+              notes: `Cancelled voucher ${voucher.code}${reason ? `: ${reason}` : ""}`,
+              created_by: userId,
+            },
+          });
+        }
+      }
+
+      if (voucher.debt) {
+        await tx.debt.update({
+          where: { id: voucher.debt.id },
+          data: { status: "written_off" },
+        });
+      }
+    });
+
+    const updated = await prisma.voucher.findFirst({
+      where: { id: parseInt(id) },
+      include: { items: true, customer: true, bank_account: true, cashier: { select: { full_name: true } }, debt: true, canceller: { select: { full_name: true } } },
+    });
+    return { message: "Voucher cancelled successfully", data: updated };
   }
 }
 

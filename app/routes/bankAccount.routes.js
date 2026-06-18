@@ -32,6 +32,7 @@ router.patch(
   "/admin/bank-accounts/:id",
   verifyToken,
   isAdmin,
+  validateError(validateID),
   validateError(bankAccountValidators.updateBankAccount),
   bankAccountControllers.update,
 );
@@ -39,6 +40,14 @@ router.get(
   "/branches/bank-accounts",
   verifyToken,
   bankAccountControllers.listActive,
+);
+router.get(
+  "/admin/bank-accounts/:id/history",
+  verifyToken,
+  isAdmin,
+  validateError(validateID),
+  validateError(bankAccountValidators.getHistory),
+  bankAccountControllers.getHistory,
 );
 
 module.exports = router;

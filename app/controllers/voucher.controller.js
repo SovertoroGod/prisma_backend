@@ -27,4 +27,31 @@ const getById = async (req, res) => {
   }
 };
 
-module.exports = { create, getAll, getById };
+const getAllManager = async (req, res) => {
+  try {
+    const result = await voucherService.getAll(req.validated, req.user.branch_id);
+    res.status(200).json({ success: true, message: "Vouchers retrieved successfully", _metadata: result.metadata, data: result.data });
+  } catch (error) {
+    res.status(500).json({ success: false, message: "Internal Server Error in get manager vouchers", error: error.message });
+  }
+};
+
+const getByIdManager = async (req, res) => {
+  try {
+    const result = await voucherService.getById(req.validated.id, req.user.branch_id);
+    res.status(200).json({ success: true, message: result.message, data: result.data });
+  } catch (error) {
+    res.status(500).json({ success: false, message: "Internal Server Error in get manager voucher by id", error: error.message });
+  }
+};
+
+const cancel = async (req, res) => {
+  try {
+    const result = await voucherService.cancel(req.validated.id, req.user.branch_id, req.user.id, req.validated.reason);
+    res.status(200).json({ success: true, message: result.message, data: result.data });
+  } catch (error) {
+    res.status(500).json({ success: false, message: "Internal Server Error in cancel voucher", error: error.message });
+  }
+};
+
+module.exports = { create, getAll, getById, getAllManager, getByIdManager, cancel };

@@ -36,7 +36,7 @@ class ProductUnitService {
     const andConditions = [];
     if (product_item_id) andConditions.push({ product_item_id: parseInt(product_item_id) });
     if (branch_id) andConditions.push({ branch_id: parseInt(branch_id) });
-    if (is_active !== undefined && is_active !== "") andConditions.push({ is_active: is_active === "true" });
+    if (is_active !== undefined && is_active !== "") andConditions.push({ is_active });
     if (startDate || endDate) andConditions.push({ created_at: { gte: startDate ? new Date(startDate) : undefined, lte: endDate ? new Date(endDate + "T23:59:59") : undefined } });
     const where = andConditions.length > 0 ? { AND: andConditions } : {};
     const skip = (parseInt(page) - 1) * parseInt(limit);

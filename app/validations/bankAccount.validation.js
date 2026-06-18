@@ -34,6 +34,14 @@ const getBankAccounts = [
   optionalInt("page", "Page"),
   optionalInt("limit", "Limit"),
   optionalBoolean("is_active", "Is Active"),
+  optionalString("account_name", "Account Name"),
 ];
 
-module.exports = { createBankAccount, updateBankAccount, getBankAccounts };
+const getHistory = [
+  optionalInt("page", "Page"),
+  optionalInt("limit", "Limit"),
+  optionalString("startDate", "Start Date"),
+  optionalString("endDate", "End Date"),
+];
+
+module.exports = { createBankAccount, updateBankAccount, getBankAccounts, getHistory };

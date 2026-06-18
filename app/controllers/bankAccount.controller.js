@@ -46,4 +46,21 @@ const listActive = async (req, res) => {
   }
 };
 
-module.exports = { create, getAll, getById, update, listActive };
+const getHistory = async (req, res) => {
+  try {
+    const { id, ...filters } = req.validated;
+    const result = await bankAccountService.getHistory(id, filters);
+    res.status(200).json({
+      success: true,
+      message: "Bank account history retrieved successfully",
+      data: result.data,
+      account: result.account,
+      aggregates: result.aggregates,
+      _metadata: result.metadata,
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: "Internal Server Error in get bank account history", error: error.message });
+  }
+};
+
+module.exports = { create, getAll, getById, update, listActive, getHistory };

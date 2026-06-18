@@ -1,8 +1,12 @@
 const { PrismaClient } = require("@prisma/client");
-const { check, query } = require("express-validator");
+const { check, query, body } = require("express-validator");
 const { requiredString, requiredInt, requiredEnum, requiredNumber } = require("./common/commonRequire");
 const { optionalInt, optionalString, optionalNumber } = require("./common/commonOptional.validator");
 const prisma = new PrismaClient();
+
+const cancelVoucher = [
+  body("reason").optional({ values: "falsy" }).trim().isString().withMessage("Reason must be a string"),
+];
 
 const createVoucher = [
   optionalInt("customer_id", "Customer ID")
@@ -20,12 +24,12 @@ const createVoucher = [
   optionalInt("bank_account_id", "Bank Account ID")
     .custom(async (value, { req }) => {
       if (value) {
-        if (req.validated.purchase_type !== "bank") {
+        if (req.body.purchase_type !== "bank") {
           throw new Error("Bank account can only be set for bank purchase type");
         }
         const account = await prisma.bankAccount.findUnique({ where: { id: value, is_active: true } });
         if (!account) throw new Error("Bank account not found or inactive");
-      } else if (req.validated.purchase_type === "bank") {
+      } else if (req.body.purchase_type === "bank") {
         throw new Error("Bank account is required for bank purchase type");
       }
       return true;
@@ -63,4 +67,4 @@ const getVouchers = [
   query("endDate").optional({ values: "falsy" }).trim().isString().withMessage("End Date must be a string"),
 ];
 
-module.exports = { createVoucher, getVouchers };
+module.exports = { createVoucher, getVouchers, cancelVoucher };

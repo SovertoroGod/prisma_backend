@@ -58,7 +58,7 @@ class CategoryService {
     }
     if (is_active !== undefined && is_active !== "") {
       andConditions.push({
-        is_active: is_active === "true",
+        is_active,
       });
     }
     if (parent_id) {
