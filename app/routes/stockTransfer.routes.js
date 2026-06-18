@@ -34,7 +34,7 @@ router.get(
   verifyToken,
   isManager,
   validateError(stockTransferValidators.getAllTransfers),
-  stockTransferControllers.getAll,
+  stockTransferControllers.getAllForManager,
 );
 router.patch(
   "/stock-transfers/:id/receive",

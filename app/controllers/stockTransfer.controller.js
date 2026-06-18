@@ -45,4 +45,14 @@ const cancelTransfer = async (req, res) => {
   }
 };
 
-module.exports = { initiate, getAll, getById, receive, cancelTransfer };
+const getAllForManager = async (req, res) => {
+  try {
+    req.validated.branch_id = req.user.branch_id;
+    const result = await stockTransferService.getAll(req.validated);
+    res.status(200).json({ success: true, message: "Stock transfers retrieved successfully", _metadata: result.metadata, data: result.data });
+  } catch (error) {
+    res.status(500).json({ success: false, message: "Internal Server Error in get stock transfers", error: error.message });
+  }
+};
+
+module.exports = { initiate, getAll, getById, receive, cancelTransfer, getAllForManager };

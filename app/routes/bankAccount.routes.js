@@ -1,6 +1,6 @@
 const express = require("express");
 const verifyToken = require("../middlewares/verifyToken");
-const { isAdmin } = require("../middlewares/authorize");
+const { isAdmin, isManager } = require("../middlewares/authorize");
 const validateError = require("../middlewares/validationErrorHandler");
 const validateID = require("../validations/id.validation");
 const bankAccountValidators = require("../validations/bankAccount.validation");
@@ -48,6 +48,20 @@ router.get(
   validateError(validateID),
   validateError(bankAccountValidators.getHistory),
   bankAccountControllers.getHistory,
+);
+router.get(
+  "/manager/bank-accounts",
+  verifyToken,
+  isManager,
+  bankAccountControllers.listActive,
+);
+router.get(
+  "/manager/bank-accounts/:id/history",
+  verifyToken,
+  isManager,
+  validateError(validateID),
+  validateError(bankAccountValidators.getHistory),
+  bankAccountControllers.getHistoryForManager,
 );
 
 module.exports = router;

@@ -64,7 +64,7 @@ class BankAccountService {
   }
 
   async getHistory(id, filters) {
-    const { page = 1, limit = 10, startDate, endDate } = filters;
+    const { page = 1, limit = 10, startDate, endDate, branch_id } = filters;
     const parsedId = parseInt(id);
 
     const account = await prisma.bankAccount.findUnique({ where: { id: parsedId } });
@@ -77,18 +77,26 @@ class BankAccountService {
       if (endDate) dateFilter.created_at.lte = new Date(endDate + "T23:59:59.999Z");
     }
 
+    const voucherBranchFilter = branch_id ? { branch_id: parseInt(branch_id) } : {};
+    const repaymentBranchFilter = branch_id ? { debt: { voucher: { branch_id: parseInt(branch_id) } } } : {};
+
     const [vouchers, repayments] = await Promise.all([
       prisma.voucher.findMany({
-        where: { bank_account_id: parsedId, ...dateFilter },
+        where: { bank_account_id: parsedId, ...dateFilter, ...voucherBranchFilter },
         include: {
           branch: { select: { branch_name: true } },
           customer: { select: { name: true } },
         },
       }),
       prisma.repayment.findMany({
-        where: { bank_account_id: parsedId, ...dateFilter },
+        where: { bank_account_id: parsedId, ...dateFilter, ...repaymentBranchFilter },
         include: {
-          debt: { include: { customer: { select: { name: true } } } },
+          debt: {
+            include: {
+              customer: { select: { name: true } },
+              voucher: { include: { branch: { select: { branch_name: true } } } },
+            },
+          },
         },
       }),
     ]);
@@ -109,7 +117,7 @@ class BankAccountService {
         type: "repayment",
         reference: `DEBT-${r.debt_id}`,
         customer: r.debt?.customer?.name || "N/A",
-        branch: null,
+        branch: r.debt?.voucher?.branch?.branch_name || null,
         amount: parseFloat(r.amount),
         description: r.notes || "Debt repayment",
         created_at: r.created_at,

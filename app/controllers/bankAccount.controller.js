@@ -63,4 +63,22 @@ const getHistory = async (req, res) => {
   }
 };
 
-module.exports = { create, getAll, getById, update, listActive, getHistory };
+const getHistoryForManager = async (req, res) => {
+  try {
+    const { id, ...filters } = req.validated;
+    filters.branch_id = req.user.branch_id;
+    const result = await bankAccountService.getHistory(id, filters);
+    res.status(200).json({
+      success: true,
+      message: "Bank account history retrieved successfully",
+      data: result.data,
+      account: result.account,
+      aggregates: result.aggregates,
+      _metadata: result.metadata,
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: "Internal Server Error in get bank account history", error: error.message });
+  }
+};
+
+module.exports = { create, getAll, getById, update, listActive, getHistory, getHistoryForManager };

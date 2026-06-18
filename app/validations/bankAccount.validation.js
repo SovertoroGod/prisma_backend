@@ -42,6 +42,7 @@ const getHistory = [
   optionalInt("limit", "Limit"),
   optionalString("startDate", "Start Date"),
   optionalString("endDate", "End Date"),
+  optionalInt("branch_id", "Branch ID"),
 ];
 
 module.exports = { createBankAccount, updateBankAccount, getBankAccounts, getHistory };

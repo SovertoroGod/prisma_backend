@@ -115,11 +115,12 @@ class StockTransferService {
   }
 
   async getAll(filters) {
-    const { status, from_branch_id, to_branch_id, startDate, endDate, page = 1, limit = 10 } = filters;
+    const { status, from_branch_id, to_branch_id, branch_id, startDate, endDate, page = 1, limit = 10 } = filters;
     const andConditions = [];
     if (status) andConditions.push({ status });
     if (from_branch_id) andConditions.push({ from_branch_id: parseInt(from_branch_id) });
     if (to_branch_id) andConditions.push({ to_branch_id: parseInt(to_branch_id) });
+    if (branch_id) andConditions.push({ OR: [{ from_branch_id: parseInt(branch_id) }, { to_branch_id: parseInt(branch_id) }] });
     if (startDate || endDate) andConditions.push({ created_at: { gte: startDate ? new Date(startDate) : undefined, lte: endDate ? new Date(endDate + "T23:59:59") : undefined } });
     const where = andConditions.length > 0 ? { AND: andConditions } : {};
     const skip = (parseInt(page) - 1) * parseInt(limit);
